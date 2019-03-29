@@ -1,2 +1,16 @@
-# Hetrogenous-vs-Homogenous
-Exploration of techniques to characterize dispersion of atomic particles in a material
+Ray M. posed an interesting question for the Nashville data nerds: how to measure homogenaity of atom distributions in an image. This notebook captures some of what I found working on that intriguing problem. As suggested by Rob H. of that same group, one approach is to consider image processing algorithms. This work suggests some way forward in that regard.
+
+Each image portrays individual images as red or blue (presumably only two different elements occur in this material). The approach begins with preparing the images to enhance borders between the two atom types. So,
+
+* remove the shading used to make each atom appear 3D with a combination of high-pass filtering, gaussian filtering, and convolution. Note that the rgb values required limiting to the interval [0,255] in order to display the high-pass filter output.
+* prepare a gray-scale image for the primary object detection algorithm by isolating the rgb image's red and blue layers and setting red layer pixles to 0 where red layer value is less than blue layer value.
+
+After trying several skimag.segmentaion algorithms, the [otsu_threshold](http://scikit-image.org/docs/dev/auto_examples/segmentation/plot_label.html#sphx-glr-auto-examples-segmentation-plot-label-py) method was selected for both speed of processing and for ease of counting the objects detected. For further discussion, see [this](https://en.wikipedia.org/wiki/Otsu's_Method) reference.
+
+Finaly, a plot of unique values in red, green, and blue layes after the high-pass filter show different patterns in the homogeneous image versus the heterogenous image. I made no attempt to formulate a metric based on this difference.
+
+### Further possible research
+
+I believe these images are single slices of a three-dimensional sample of a material. If so, then the image process demonstrated herein are limited to two-dimensional images of 1,000 by 1,000 rgb pixels each. Even if each pixel represented a single atom (which it does not). a 1,000 X 1,000 slice of atoms is probably pretty small. Maybe size doesn't matter, but computationally, even an rgb model of a 1,000 x 1,000 x 1,000 particle of mass would present processing difficulties in terms of memory and cpu time. Even if we restricticted ourselves to 2 element material and replaced the rgb model with binary values (0 == element 1, 1 == element 2), this is still a gigabyte of data. Assuming greater dilution of one element versus the other in a two element substance, the sample size could grow exponentially greater exacerbating the memory and computing power required. Some form buffering would most likely be required to solve the memory limitation but that would no doubt extend the compute.
+
+Regardless, my thougts went to the rules used for that old computer "game of life" implemented by a program that traverses a matrix (albeit 2D) and essentially applies a convolution to each location to determe if a "cell" had sufficient neighbors to "survive" and/or multiply (I'm a bit foggy on the precise rule). It seems to me that a similar convolutional approach could be used to detect boundaries around a location in 3D but in this case it would be a 3D convolution. Armed with such an algorithm, something like [particle swarms](https://www.youtube.com/watch?v=gkGa6WZpcQg&t=21s) could be used to trace the contours of atom clusters where, rather than sharing best maxima / minima, each particle shares countours found and, when a two particles detect the same boundary point, one changes the search direction leaving the other to finish tracing the boundary in whatever dimension it was tracing.
